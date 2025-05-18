@@ -11,7 +11,11 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
+    "@solana/kit": "^2.1.1",
+    "@solana/spl-token": "^0.4.13",
+    "@solana/web3.js": "^1.98.2",
     "@types/express": "^5.0.2",
+    "dotenv": "^16.5.0",
     "express": "^5.1.0"
   }
 }
