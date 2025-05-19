@@ -1,11 +1,9 @@
 import express from 'express'
-import { MINT_ADDRESS, PRIVATE_KEY, PUBLIC_KEY } from './constants'
+import { MINT_ADDRESS, PRIVATE_KEY, PUBLIC_KEY, TOKEN_CREATION_TIMESTAMP } from './constants'
 import { getOrCreateAssociatedTokenAccount, mintTo } from '@solana/spl-token'
 import { Connection, Keypair, LAMPORTS_PER_SOL, PublicKey } from '@solana/web3.js'
 import dotenv from 'dotenv'
 import {
-    createKeyPairFromBytes,
-    createSignerFromKeyPair,
     getBase58Encoder
   } from "@solana/kit";
   
@@ -42,7 +40,46 @@ const dummyResponse = {
     "transactionError": null,
     "type": "TRANSFER"
 }
+/* Formula thinking
 
+    1 SOL = 1 my token (Initially)
+    Let's say my token grows 4% every hour (Mission of making the most liquid token😂)
+    i.e
+    After 1 hour
+    1 SOL = 0.96 my token
+    After 2 hours
+    1 SOL = 0.9216 my token
+    After 3 hours
+    1 SOL = 0.8847 my token
+
+    // After 17 hours
+    1 SOL = 0.4995 my token (My token is double the value of 1 SOL after 17 hours)
+    i.e If you want 1 my token, then you have to pay 2 SOL now
+
+
+    So my formula would look something like this WHEN USER WANTS TO GET MY TOKEN (Will find something better later)
+
+    hoursPassed = getHours(TOKEN_CREATION_TIMESTAMP - currentTimestamp)
+    amount = 1
+    for(let i = 0; i < hoursPassed; i++) {
+        amount = amount / 1.04
+    }
+
+    sendAmount = receivedSOL * amount
+    send(sendAmount)
+
+
+    WHEN USER WANTS TO SEND MY TOKEN (Will find something better later)
+
+    hoursPassed = getHours(TOKEN_CREATION_TIMESTAMP - currentTimestamp)
+    amount = 1
+    for(let i = 0; i < hoursPassed; i++) {
+        amount = amount * 1.04
+    }
+
+    sendAmountInSOL = receivedMyToken * amount
+    send(sendAmountInSOL)
+*/
 async function mintAndSendMyToken(toAccount: string, amount: number) {
     console.log("toAccount", toAccount)
     const connection = new Connection("https://api.devnet.solana.com")
@@ -56,6 +93,15 @@ async function mintAndSendMyToken(toAccount: string, amount: number) {
     console.log("payer", payer.publicKey)
     const ATA = await getOrCreateAssociatedTokenAccount(connection, payer, new PublicKey(MINT_ADDRESS), new PublicKey(toAccount))
     console.log("ATA", ATA)
+    // Formula comes here
+    const currentTimestamp = Date.now()
+    const hoursPassed = (currentTimestamp - Date.parse(TOKEN_CREATION_TIMESTAMP)) / 3600000
+    console.log("User sent",amount, "Lamports of SOL" )
+    for(let i = 1; i <= hoursPassed; i++) {
+        amount = amount / 1.04
+    }
+    console.log("hoursPassed", hoursPassed)
+    console.log("Now user will receive",amount, "Lamports of my token" )
     const mintTxn = await mintTo(connection, payer, new PublicKey(MINT_ADDRESS), ATA.address, payer.publicKey,amount ) // Assuming 1 SOL = 1 my token. Later this equation will be changed according to the formula
     console.log("mintTxn", mintTxn)
     return
