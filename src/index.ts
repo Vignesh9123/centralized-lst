@@ -100,6 +100,7 @@ async function mintAndSendMyToken(toAccount: string, amount: number) {
     for(let i = 1; i <= hoursPassed; i++) {
         amount = amount / 1.04
     }
+    amount = parseInt(amount.toString())
     console.log("hoursPassed", hoursPassed)
     console.log("Now user will receive",amount, "Lamports of my token" )
     const mintTxn = await mintTo(connection, payer, new PublicKey(MINT_ADDRESS), ATA.address, payer.publicKey,amount ) // Assuming 1 SOL = 1 my token. Later this equation will be changed according to the formula
